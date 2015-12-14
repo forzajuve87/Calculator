@@ -1,0 +1,931 @@
+package novi;
+
+import java.awt.EventQueue;
+import javax.swing.JFrame;
+import javax.swing.JTextField;
+import javax.swing.JButton;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.AbstractAction;
+import java.text.DecimalFormat;
+import java.text.*;
+import java.math.*;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseMotionAdapter;
+import javax.swing.border.BevelBorder;
+
+
+public class kalkulator {
+
+	private JFrame frmCalculator;
+	private JTextField display;
+	private BigDecimal total = new BigDecimal("0.0");
+	private BigDecimal total2 = new BigDecimal("0.0");
+	private BigDecimal zero = new BigDecimal("0.0");
+	private int maxLengthOfNumber=0;
+	
+	// LAUNCH THE APPLICATION.
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					kalkulator window = new kalkulator();
+					window.frmCalculator.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	
+	// CREATE THE APPLICATION
+	public kalkulator() {
+		initialize();
+	}
+	
+	// INITIALIZE THE CONTENTS OF THE FRAME
+	private void initialize() {
+		frmCalculator = new JFrame();
+		frmCalculator.getContentPane().setBackground(SystemColor.controlShadow);
+		frmCalculator.setTitle("Calculator");
+		frmCalculator.setFocusable(false);
+		frmCalculator.setResizable(false);
+		frmCalculator.setBounds(100, 100, 293, 338);
+		frmCalculator.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmCalculator.getContentPane().setLayout(null);
+		
+		
+		
+		// DISPLAY (TEXTFIELD)
+		display = new JTextField();
+		display.setForeground(Color.BLACK);
+		display.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		display.setBackground(Color.WHITE);
+		// if Dragged, Clicked or Pressed mouse button (on the textfield), do nothing
+		display.addMouseMotionListener(new MouseMotionAdapter() {
+			public void mouseDragged(MouseEvent e) {
+				e.consume();
+				display.setText(display.getText());
+			}
+		});
+		display.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				e.consume();
+				display.setText(display.getText());
+			}
+			public void mousePressed(MouseEvent e) {
+				e.consume();
+				display.setText(display.getText());
+			}
+		});
+		display.setHighlighter(null);
+		display.setTransferHandler(null);
+		display.setFocusable(true); 
+		display.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+		display.setCaretColor(Color.WHITE);
+		display.setFont(new Font("Verdana", Font.PLAIN, 18));
+		disableKeys(display.getInputMap());
+		display.addKeyListener(new KeyAdapter() {
+			
+			// KEYBOARD
+			public void keyTyped(KeyEvent e) {
+				char c=e.getKeyChar();
+				
+				if(c=='+'){
+					e.consume();
+					display.setText(sabiranje(display.getText()));
+				}
+				else if(c=='-'){
+					e.consume();
+					display.setText(oduzimanje(display.getText()));
+				}
+				else if(c=='*'){
+					e.consume();
+					display.setText(mnozenje(display.getText()));
+				}
+				else if(c=='/'){
+					e.consume();
+					display.setText(deljenje(display.getText()));
+				}
+				else if(c=='.'){
+					e.consume();
+					display.setText(tacka(display.getText()));
+				}
+				else if(c=='0'){
+					e.consume();
+					display.setText(nula(display.getText()));
+				}
+				else if(c=='1'){
+					e.consume();
+					display.setText(jedan(display.getText()));
+				}
+				else if(c=='2'){
+					e.consume();
+					display.setText(dva(display.getText()));
+				}
+				else if(c=='3'){
+					e.consume();
+					display.setText(tri(display.getText()));
+				}
+				else if(c=='4'){
+					e.consume();
+					display.setText(cetiri(display.getText()));
+				}
+				else if(c=='5'){
+					e.consume();
+					display.setText(pet(display.getText()));
+				}
+				else if(c=='6'){
+					e.consume();
+					display.setText(sest(display.getText()));
+				}
+				else if(c=='7'){
+					e.consume();
+					display.setText(sedam(display.getText()));
+				}
+				else if(c=='8'){
+					e.consume();
+					display.setText(osam(display.getText()));
+				}
+				else if(c=='9'){
+					e.consume();
+					display.setText(devet(display.getText()));
+				}
+				else if(c == KeyEvent.VK_ENTER){
+					display.setText(jednako(display.getText()));
+				}
+				else if(c == KeyEvent.VK_BACK_SPACE){
+					String niska=display.getText();
+					int duzina=niska.length();
+
+					if(maxLengthOfNumber==16 && !(total.equals(zero))){
+						
+					}
+					else{
+
+						// '45 + -' becomes '45 + '
+						if(duzina>1 && niska.charAt(duzina-1)=='-' && (niska.charAt(duzina-3)=='-' || niska.charAt(duzina-3)=='+'
+								|| niska.charAt(duzina-3)=='/' || niska.charAt(duzina-3)=='*')){
+							maxLengthOfNumber--;
+							display.setText("" + niska.substring(0, duzina-1));
+						}
+						// '5' becomes '0' (delete one digit number)
+						else if(duzina==1 || niska.charAt(niska.length()-1)=='!'){
+							maxLengthOfNumber=0;
+							display.setText("0");
+						}
+						// delete dot or last digit
+						else if(niska.charAt(duzina-1)=='.' || Character.isDigit(niska.charAt(duzina-1))){
+							maxLengthOfNumber--;
+							display.setText("" + niska.substring(0, duzina-1));
+						}
+						// '45 + ' stays the same ('45 + ')
+						else{
+							if((niska.charAt(duzina-2)=='-' || niska.charAt(duzina-2)=='+' 
+									|| niska.charAt(duzina-2)=='*' || niska.charAt(duzina-2)=='/') && (duzina>1)){
+								
+							}		
+						}
+					}
+				}
+				else
+					e.consume();
+			}
+		});	
+		display.setBounds(25, 11, 237, 73);
+		display.setHorizontalAlignment(JTextField.RIGHT);
+		display.setText("0");
+		frmCalculator.getContentPane().add(display);
+
+		
+		// BUTTONS
+		// button 0
+		JButton button_15 = new JButton("0");
+		button_15.setForeground(Color.BLACK);
+		button_15.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button_15.setBackground(Color.WHITE);
+		button_15.setFocusable(false);
+		button_15.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(nula(display.getText()));
+			}
+		});
+		button_15.setBounds(25, 219, 57, 35);
+		button_15.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button_15);
+		
+		// button 1
+		JButton button_10 = new JButton("1");
+		button_10.setForeground(Color.BLACK);
+		button_10.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button_10.setBackground(Color.WHITE);
+		button_10.setFocusable(false);
+		button_10.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(jedan(display.getText()));
+			}
+		});
+		button_10.setBounds(25, 181, 57, 35);
+		button_10.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button_10);
+		
+		// button 2
+		JButton button_1 = new JButton("2");
+		button_1.setForeground(Color.BLACK);
+		button_1.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button_1.setBackground(Color.WHITE);
+		button_1.setFocusable(false);
+		button_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(dva(display.getText()));
+			}
+		});
+		button_1.setBounds(85, 181, 57, 35);
+		button_1.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button_1);
+		
+		// button 3
+		JButton button_12 = new JButton("3");
+		button_12.setForeground(Color.BLACK);
+		button_12.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button_12.setBackground(Color.WHITE);
+		button_12.setFocusable(false);
+		button_12.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(tri(display.getText()));
+			}
+		});
+		button_12.setBounds(145, 181, 57, 35);
+		button_12.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button_12);
+		
+		// button 4
+		JButton button_3 = new JButton("4");
+		button_3.setForeground(Color.BLACK);
+		button_3.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button_3.setBackground(Color.WHITE);
+		button_3.setFocusable(false);
+		button_3.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(cetiri(display.getText()));
+			}
+		});
+		button_3.setBounds(25, 143, 57, 35);
+		button_3.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button_3);
+		
+		// button 5
+		JButton button_4 = new JButton("5");
+		button_4.setForeground(Color.BLACK);
+		button_4.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button_4.setBackground(Color.WHITE);
+		button_4.setFocusable(false);
+		button_4.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(pet(display.getText()));
+			}
+		});
+		button_4.setBounds(85, 143, 57, 35);
+		button_4.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button_4);
+		
+		// button 6
+		JButton button_7 = new JButton("6");
+		button_7.setForeground(Color.BLACK);
+		button_7.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button_7.setBackground(Color.WHITE);
+		button_7.setFocusable(false);
+		button_7.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(sest(display.getText()));
+			}
+		});
+		button_7.setBounds(145, 143, 57, 35);
+		button_7.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button_7);
+		
+		// button 7
+		JButton btnNewButton = new JButton("7");
+		btnNewButton.setForeground(Color.BLACK);
+		btnNewButton.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		btnNewButton.setBackground(Color.WHITE);
+		btnNewButton.setFocusable(false);
+		btnNewButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(sedam(display.getText()));
+			}
+		});
+		btnNewButton.setBounds(25, 105, 57, 35);
+		btnNewButton.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(btnNewButton);
+		
+		// button 8
+		JButton button = new JButton("8");
+		button.setForeground(Color.BLACK);
+		button.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button.setBackground(Color.WHITE);
+		button.setFocusable(false);
+		button.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(osam(display.getText()));
+			}
+		});
+		button.setBounds(85, 105, 57, 35);
+		button.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button);
+		
+		// button 9
+		JButton button_2 = new JButton("9");
+		button_2.setForeground(Color.BLACK);
+		button_2.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button_2.setBackground(Color.WHITE);
+		button_2.setFocusable(false);
+		button_2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(devet(display.getText()));
+			}
+		});
+		button_2.setBounds(145, 105, 57, 35);
+		button_2.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button_2);
+		
+		// button +
+		JButton button_18 = new JButton("+");
+		button_18.setForeground(Color.BLACK);
+		button_18.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button_18.setBackground(Color.WHITE);
+		button_18.setFocusable(false);
+		button_18.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(sabiranje(display.getText()));
+			}
+		});
+		button_18.setBounds(205, 219, 57, 35);
+		button_18.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button_18);
+		
+		// button -
+		JButton button_13 = new JButton("-");
+		button_13.setForeground(Color.BLACK);
+		button_13.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button_13.setBackground(Color.WHITE);
+		button_13.setFocusable(false);
+		button_13.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(oduzimanje(display.getText()));
+			}
+		});
+		button_13.setBounds(205, 181, 57, 35);
+		button_13.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button_13);
+		
+		// button /
+		JButton button_6 = new JButton("/");
+		button_6.setForeground(Color.BLACK);
+		button_6.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button_6.setBackground(Color.WHITE);
+		button_6.setFocusable(false);
+		button_6.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(deljenje(display.getText()));
+			}
+		});
+		button_6.setBounds(145, 219, 57, 35);
+		button_6.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button_6);
+		
+		// button *
+		JButton btnX = new JButton("*");
+		btnX.setForeground(Color.BLACK);
+		btnX.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		btnX.setBackground(Color.WHITE);
+		btnX.setFocusable(false);
+		btnX.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(mnozenje(display.getText()));
+			}
+		});
+		btnX.setBounds(145, 257, 57, 35);
+		btnX.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(btnX);
+		
+		// button C
+		JButton btnC = new JButton("C");
+		btnC.setForeground(Color.BLACK);
+		btnC.setBackground(Color.WHITE);
+		btnC.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		btnC.setFocusable(false);
+		btnC.setBounds(205, 105, 57, 73);
+		btnC.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				total=zero;
+				total2=zero;
+				maxLengthOfNumber=0;
+				display.setText("0");
+			}
+		});
+		btnC.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(btnC);
+		
+		// button .
+		JButton button_14 = new JButton(".");
+		button_14.setForeground(Color.BLACK);
+		button_14.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button_14.setBackground(Color.WHITE);
+		button_14.setFocusable(false);
+		button_14.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(tacka(display.getText()));
+			}
+		});
+		button_14.setBounds(85, 219, 57, 35);
+		button_14.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button_14);
+		
+		// button +/-
+		JButton button_16 = new JButton("+/-");
+		button_16.setForeground(Color.BLACK);
+		button_16.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button_16.setBackground(Color.WHITE);
+		button_16.setFocusable(false);
+		button_16.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				display.setText(negativni(display.getText()));
+			}
+		});
+		button_16.setBounds(25, 257, 117, 35);
+		button_16.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button_16);
+		
+		// button =
+		JButton button_19 = new JButton("=");
+		button_19.setForeground(Color.BLACK);
+		button_19.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK));
+		button_19.setBackground(Color.WHITE);
+		button_19.setFocusable(false);
+		button_19.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String niska=jednako(display.getText());
+				
+				if(niska.equals("-0"))
+					display.setText("0");
+				else
+					display.setText(niska);	
+			}
+		});
+		button_19.setBounds(205, 257, 57, 35);
+		button_19.setFont(new Font("Arial Narrow", Font.BOLD, 22));
+		frmCalculator.getContentPane().add(button_19);
+
+	}
+	public class SwingAction extends AbstractAction {
+		public SwingAction() {
+			putValue(NAME, "SwingAction");
+			putValue(SHORT_DESCRIPTION, "Some short description");
+		}
+		private static final long serialVersionUID = 1L;
+		public void actionPerformed(ActionEvent e) {
+		}
+	}
+	
+	
+	// ARITHMETIC OPERATIONS
+	// addition
+	private String sabiranje(String niska){
+		if(niska.charAt(niska.length()-1)=='.' || niska.charAt(niska.length()-1)=='!')
+			return niska;
+		else if(niska.charAt(niska.length()-1)==' ')
+			return niska.substring(0, niska.length()-3) + " + ";
+		else{
+			maxLengthOfNumber=0;
+			return niska + " + ";
+		}		
+	}
+	// subtraction
+	private String oduzimanje(String niska){
+		if(niska.charAt(niska.length()-1)=='.' || niska.charAt(niska.length()-1)=='!')
+			return niska;
+		else if(niska.charAt(niska.length()-1)==' ')
+			return niska.substring(0, niska.length()-3) + " - ";
+		else{
+			maxLengthOfNumber=0;
+			return niska + " - ";
+		}
+	}
+	// division
+	private String deljenje(String niska){
+		if(niska.charAt(niska.length()-1)=='.' || niska.charAt(niska.length()-1)=='!')
+			return niska;
+		else if(niska.charAt(niska.length()-1)==' ')
+			return niska.substring(0, niska.length()-3) + " / ";
+		else{
+			maxLengthOfNumber=0;
+			return niska + " / ";
+		}	
+	}
+	// multiplication
+	private String mnozenje(String niska){
+		if(niska.charAt(niska.length()-1)=='.' || niska.charAt(niska.length()-1)=='!')
+				return niska;
+		else if(niska.charAt(niska.length()-1)==' ')
+			return niska.substring(0, niska.length()-3) + " * ";
+		else{
+			maxLengthOfNumber=0;
+			return niska + " * ";	
+		}	
+	}
+	
+	
+	// DISABLE KEYS, ., +/-, =
+	// disable keys
+	private void disableKeys(InputMap inputMap) {
+		inputMap.put(KeyStroke.getKeyStroke("LEFT"), "none");
+	    inputMap.put(KeyStroke.getKeyStroke("RIGHT"), "none");
+	    inputMap.put(KeyStroke.getKeyStroke("BACK_SPACE"), "none");
+	}
+
+	// dot (decimal numbers)
+	private String tacka(String niska){
+		int i=niska.length()-1;
+		
+		if(niska.charAt(i)== '.' || niska.charAt(i) == ' ' || niska.charAt(i)=='!' || maxLengthOfNumber==16)
+			return niska;
+		else{
+			while(i>=0 && niska.charAt(i)!=' '){
+				if(niska.charAt(i) == '.')
+					return niska;
+				i--;
+			}
+			maxLengthOfNumber=(niska.length()-1)-i;
+			return niska + ".";
+		}
+	}
+	// negative numbers
+	private String negativni(String niska){
+		int i=niska.length()-1;
+		
+		// 0 or '6 + ' or '1 / 0' or '6 + -' or '6 + 0', do nothing
+		if((i==0 && niska.equals("0")) || niska.charAt(i)==' ' || niska.charAt(i)=='!'
+				|| niska.charAt(i)=='-' || (niska.charAt(i)=='0' && niska.charAt(i-1)==' '))
+			return niska;
+		else{
+			while(Character.isDigit(niska.charAt(i)) || niska.charAt(i)=='.' || niska.charAt(i)=='E'){
+				// show '-' before number
+				if(i==0)
+					return niska="-" + niska;
+				// remove '-' before number
+				if(i==1 && niska.charAt(0)=='-')
+					return niska.substring(i);
+				
+				i--;
+			}
+			// '6 + -4' becomes '6 + 4'
+			if(niska.charAt(i)=='-')
+				return niska.substring(0, i) + niska.substring(i+1);
+			// '6 + 4' becomes '6 + -4'
+			else
+				return niska.substring(0, i) + " -" + niska.substring(i+1);
+		}
+	}
+	// equals (solving expression)
+	private String jednako(String niska){
+		int i, j, k, negative, counter=0;
+		BigDecimal minus = new BigDecimal("-1");
+
+		// '4 +' or '5464' - bad expression, do nothing
+		if(niska.charAt(niska.length()-1)==' ' || !(niska.contains(" + ") || niska.contains(" - ") 
+				|| niska.contains(" * ") || niska.contains(" / "))){
+			return niska;
+		}
+
+		// use previous result for new expression
+		if(!(total.equals(zero))){
+			if(niska.charAt(0)=='-'){
+				if(total.compareTo(BigDecimal.ZERO)>0){
+					total=total.multiply(minus);
+					total2=total2.multiply(minus);
+				}
+				k=1;
+			}
+			else{
+				if(total.compareTo(BigDecimal.ZERO)<0){
+					total=total.multiply(minus);
+					total2=total2.multiply(minus);
+				}
+				k=0;
+			}
+			
+			while(niska.charAt(k)!='+' && niska.charAt(k)!='-' && niska.charAt(k)!='*' && niska.charAt(k)!='/'){
+				k++;
+			}
+			niska=niska.substring(k);
+			counter=2;
+		}
+		
+		
+		while(true){
+			// does the first number negative or not
+			if(niska.charAt(counter)=='-'){
+				if(counter==0){
+					j=1;
+					i=1;
+				}
+				else{
+					j=3;
+					i=3;
+				}
+				negative=1;	
+			}
+			else{
+				if(counter==0){
+					j=0;
+					i=0;
+				}
+				else{
+					j=2;
+					i=2;
+				}
+				negative=0;
+			}
+			
+			// solving expression
+			while(j<niska.length() && niska.charAt(j)!='+' && niska.charAt(j)!='-' && niska.charAt(j)!='*' && niska.charAt(j)!='/'){
+				j++;
+			}
+			
+			if(j<niska.length())
+				j--;
+
+			BigDecimal br = new BigDecimal(niska.substring(i, j));
+			
+			if(negative==1){
+				if(counter==0){
+					total=total.add(br.multiply(minus));
+					total2=total2.add(br.multiply(minus));
+					counter=2;
+				}
+				else if(niska.charAt(0)=='+'){
+					total=total.add(br.multiply(minus));
+					total2=total2.add(br.multiply(minus));
+				}	
+				else if(niska.charAt(0)=='-'){
+					total=total.subtract(br.multiply(minus));
+					total2=total2.subtract(br.multiply(minus));
+				}
+				else if(niska.charAt(0)=='*'){
+					total = total.multiply(br.multiply(minus));
+					total = total.setScale(16, BigDecimal.ROUND_HALF_UP);
+					total2 = new BigDecimal ((total2.multiply(br.multiply(minus))).doubleValue(), MathContext.DECIMAL64);
+				}
+				else{
+					// niska.charAt(0)=='/'
+					total = total.divide(br.multiply(minus), 16, BigDecimal.ROUND_HALF_UP);
+					total2 = new BigDecimal (total2.doubleValue() / (br.multiply(minus)).doubleValue(), MathContext.UNLIMITED);
+				}
+			}
+			else{
+				if(counter==0){
+					total=total.add(br);
+					total2=total2.add(br);
+					counter=2;
+				}
+				else if(niska.charAt(0)=='+'){
+					total=total.add(br);
+					total2=total2.add(br);
+				}
+				else if(niska.charAt(0)=='-'){
+					total=total.subtract(br);
+					total2=total2.subtract(br);
+				}
+				else if(niska.charAt(0)=='*'){
+					total = total.multiply(br);
+					total = total.setScale(16, BigDecimal.ROUND_HALF_UP);
+					total2 = new BigDecimal ((total2.multiply(br)).doubleValue(), MathContext.DECIMAL64);
+				}
+				else{ 
+					// niska.charAt(0)=='/'
+					if(Double.parseDouble(niska.substring(i, j))==0)
+						return "Deljenje nulom!!!";
+					
+					total = total.divide(br, 16, BigDecimal.ROUND_HALF_UP);
+					total2 = new BigDecimal (total2.doubleValue() / br.doubleValue(), MathContext.UNLIMITED);
+				}
+			}
+			
+			// show result or continue solving
+			if(j==niska.length()){
+				BigDecimal one = new BigDecimal("1.0000000000000000");
+				NumberFormat formatter = new DecimalFormat();
+			    formatter = new DecimalFormat("0.###############E0");
+			    String niska2;
+			    maxLengthOfNumber=16;
+ 
+			    niska = String.valueOf(total);
+			    niska = String.valueOf(new BigDecimal (niska).stripTrailingZeros().toPlainString());
+			    niska2 = String.valueOf(total2);
+			    niska2 = String.valueOf(new BigDecimal (niska2).stripTrailingZeros().toPlainString());
+			   
+			    // if the expression for example '1/9*9' return niska2 otherwise return niska
+			    if((niska2.contains(".") && total.subtract(total2).compareTo(BigDecimal.ZERO)<0) || niska2.length()>16 
+			    		|| total.subtract(total2).equals(one)){
+				    if(!(niska.contains(".")) && niska.length()>16 && niska.charAt(0)!='-'){
+				    	return formatter.format(total);
+				    }
+				    else if(niska.contains(".") && niska.length()>18){
+				    	if(niska.charAt(0)=='-'){
+				    		niska = niska.substring(0, 18);
+				    		return String.valueOf(new BigDecimal (niska).stripTrailingZeros().toPlainString());
+				    	}
+				    	niska = niska.substring(0, 17);
+				    	return String.valueOf(new BigDecimal (niska).stripTrailingZeros().toPlainString());
+				    }
+				    else{
+				    	return niska;
+				    }
+			    }
+			    return niska2;
+			}
+			niska=niska.substring(j+1, niska.length());
+		}
+	}
+	
+	
+	
+	// NUMBERS
+	// number 0
+	private String nula(String niska){
+		int i;
+
+		for(i=0; i<niska.length(); i++){
+			if(niska.charAt(i)=='.')
+				break;
+		}
+		// '1 / 0' Error
+		if(niska.charAt(niska.length()-1)=='!' || maxLengthOfNumber==16)
+			return niska;
+		// '1.' becomes '1.0'
+		else if(i!=niska.length()){
+			maxLengthOfNumber++;
+			return niska + "0";
+		}
+		else{
+			// '4 +' becomes '4 + 0' 
+			if(niska.charAt(niska.length()-1)==' '){
+				maxLengthOfNumber++;
+				return niska + "0";
+			}
+			else if(niska.charAt(niska.length()-1)=='0'){
+				// '4 + 10' becomes '4 + 100'
+				if(niska.length()>1 && Character.isDigit(niska.charAt(niska.length()-2))){
+					maxLengthOfNumber++;
+					return niska + "0";
+				}
+				// '4 + 0', do nothing
+				else 
+					return niska;
+			}	
+			// 4 + 2
+			else if(Character.isDigit(niska.charAt(niska.length()-1)) && niska.charAt(niska.length()-1)!='0'){
+				maxLengthOfNumber++;
+				return niska + "0";
+			}	
+			else
+				return "0";
+		}
+	}
+	// number 1
+	private String jedan(String niska){
+		// '1 / 0' Error
+		if(niska.charAt(niska.length()-1)=='!' || maxLengthOfNumber==16)
+			return niska;
+		else if(niska.equals("0")){
+			maxLengthOfNumber++;
+			return "" + "1";
+		}
+		else{
+			maxLengthOfNumber++;
+			return niska + "1";
+		}
+			
+	}
+	// number 2
+	private String dva(String niska){
+		// '1 / 0' Error
+		if(niska.charAt(niska.length()-1)=='!' || maxLengthOfNumber==16)
+			return niska;
+		else if(niska.equals("0")){
+			maxLengthOfNumber++;
+			return "" + "2";
+		}
+		else{
+			maxLengthOfNumber++;
+			return niska + "2";
+		}
+	}
+	// number 3
+	private String tri(String niska){
+		// '1 / 0' Error
+		if(niska.charAt(niska.length()-1)=='!' || maxLengthOfNumber==16)
+			return niska;
+		else if(niska.equals("0")){
+			maxLengthOfNumber++;
+			return "" + "3";
+		}
+		else{
+			maxLengthOfNumber++;
+			return niska + "3";
+		}
+	}
+	// number 4
+	private String cetiri(String niska){
+		// '1 / 0' Error
+		if(niska.charAt(niska.length()-1)=='!' || maxLengthOfNumber==16)
+			return niska;
+		else if(niska.equals("0")){
+			maxLengthOfNumber++;
+			return "" + "4";
+		}
+		else{
+			maxLengthOfNumber++;
+			return niska + "4";
+		}
+	}
+	// number 5
+	private String pet(String niska){
+		// '1 / 0' Error
+		if(niska.charAt(niska.length()-1)=='!' || maxLengthOfNumber==16)
+			return niska;
+		else if(niska.equals("0")){
+			maxLengthOfNumber++;
+			return "" + "5";
+		}
+		else{
+			maxLengthOfNumber++;
+			return niska + "5";
+		}	
+	}
+	// number 6
+	private String sest(String niska){
+		// '1 / 0' Error
+		if(niska.charAt(niska.length()-1)=='!' || maxLengthOfNumber==16)
+			return niska;
+		else if(niska.equals("0")){
+			maxLengthOfNumber++;
+			return "" + "6";
+		}
+		else{
+			maxLengthOfNumber++;
+			return niska + "6";
+		}
+	}
+	// number 7
+	private String sedam(String niska){
+		// '1 / 0' Error
+		if(niska.charAt(niska.length()-1)=='!' || maxLengthOfNumber==16)
+			return niska;
+		else if(niska.equals("0")){
+			maxLengthOfNumber++;
+			return "" + "7";
+		}
+		else{
+			maxLengthOfNumber++;
+			return niska + "7";
+		}
+			
+	}
+	// number 8
+	private String osam(String niska){
+		// '1 / 0' Error
+		if(niska.charAt(niska.length()-1)=='!' || maxLengthOfNumber==16)
+			return niska;
+		else if(niska.equals("0")){
+			maxLengthOfNumber++;
+			return "" + "8";
+		}
+		else{
+			maxLengthOfNumber++;
+			return niska + "8";
+		}
+	}
+	// number 9
+	private String devet(String niska){
+		// '1 / 0' Error
+		if(niska.charAt(niska.length()-1)=='!' || maxLengthOfNumber==16)
+			return niska;
+		else if(niska.equals("0")){
+			maxLengthOfNumber++;
+			return "" + "9";
+		}
+		else{
+			maxLengthOfNumber++;
+			return niska + "9";
+		}
+	}
+}
